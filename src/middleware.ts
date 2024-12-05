@@ -15,6 +15,7 @@ export default clerkMiddleware((auth, req) => {
   const { sessionClaims } = auth();
 
   const role = (sessionClaims?.metadata as { role?: string })?.role;
+  console.log(role, "role from middleware");
 
   for (const { matcher, allowedRoles } of matchers) {
     if (matcher(req) && !allowedRoles.includes(role!)) {

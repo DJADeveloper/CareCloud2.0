@@ -21,7 +21,6 @@ const deleteActionMap = {
   teacher: deleteTeacher,
   student: deleteStudent,
   exam: deleteExam,
-// TODO: OTHER DELETE ACTIONS
   parent: deleteSubject,
   lesson: deleteSubject,
   assignment: deleteSubject,
@@ -31,11 +30,7 @@ const deleteActionMap = {
   announcement: deleteSubject,
 };
 
-// USE LAZY LOADING
-
-// import TeacherForm from "./forms/TeacherForm";
-// import StudentForm from "./forms/StudentForm";
-
+// Lazy loading of form components
 const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
   loading: () => <h1>Loading...</h1>,
 });
@@ -51,8 +46,8 @@ const ClassForm = dynamic(() => import("./forms/ClassForm"), {
 const ExamForm = dynamic(() => import("./forms/ExamForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-// TODO: OTHER FORMS
 
+// Map of forms to render
 const forms: {
   [key: string]: (
     setOpen: Dispatch<SetStateAction<boolean>>,
@@ -100,7 +95,6 @@ const forms: {
       setOpen={setOpen}
       relatedData={relatedData}
     />
-    // TODO OTHER LIST ITEMS
   ),
 };
 
@@ -137,6 +131,14 @@ const FormModal = ({
       }
     }, [state, router]);
 
+    const formComponent = forms[table];
+
+    // Handle cases where the table key is invalid
+    if (!formComponent) {
+      console.error(`Form not found for table: "${table}"`);
+      return <div>Form not found!</div>;
+    }
+
     return type === "delete" && id ? (
       <form action={formAction} className="p-4 flex flex-col gap-4">
         <input type="text | number" name="id" value={id} hidden />
@@ -148,9 +150,9 @@ const FormModal = ({
         </button>
       </form>
     ) : type === "create" || type === "update" ? (
-      forms[table](setOpen, type, data, relatedData)
+      formComponent(setOpen, type, data, relatedData)
     ) : (
-      "Form not found!"
+      <div>Invalid form type!</div>
     );
   };
 

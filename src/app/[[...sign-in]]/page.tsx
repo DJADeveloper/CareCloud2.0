@@ -13,10 +13,15 @@ const LoginPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const role = user?.publicMetadata.role;
+    if (isLoaded && isSignedIn) {
+      console.log(user.publicMetadata.role, "before assigning role");
+      const role = user?.publicMetadata.role;
 
-    if (role) {
-      router.push(`/${role}`);
+      if (role) {
+        console.log(role);
+        router.push(`/${role}`);
+        // router.push(`/${role}`);
+      }
     }
   }, [user, router]);
 
@@ -49,7 +54,7 @@ const LoginPage = () => {
               Password
             </Clerk.Label>
             <Clerk.Input
-              type="password"
+              type="current-password"
               required
               className="p-2 rounded-md ring-1 ring-gray-300"
             />
