@@ -1,49 +1,61 @@
 "use client";
 
 import {
-  deleteClass,
-  deleteExam,
-  deleteStudent,
-  deleteSubject,
-  deleteTeacher,
+  deleteFamilyMember,
+  deleteResident,
+  deleteStaff,
+  deleteRoom,
+  deleteCarePlan,
+  deleteMedicalRecord,
+  deleteCareRoutine,
+  deleteEvent,
+  deleteAnnouncement,
 } from "@/lib/actions";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useFormState } from "react-dom";
 import { toast } from "react-toastify";
 import { FormContainerProps } from "./FormContainer";
 
 const deleteActionMap = {
-  subject: deleteSubject,
-  class: deleteClass,
-  teacher: deleteTeacher,
-  student: deleteStudent,
-  exam: deleteExam,
-  parent: deleteSubject,
-  lesson: deleteSubject,
-  assignment: deleteSubject,
-  result: deleteSubject,
-  attendance: deleteSubject,
-  event: deleteSubject,
-  announcement: deleteSubject,
+  family: deleteFamilyMember,
+  resident: deleteResident,
+  staff: deleteStaff,
+  room: deleteRoom,
+  carePlan: deleteCarePlan,
+  medicalRecord: deleteMedicalRecord,
+  careRoutine: deleteCareRoutine,
+  event: deleteEvent,
+  announcement: deleteAnnouncement,
 };
 
 // Lazy loading of form components
-const TeacherForm = dynamic(() => import("./forms/TeacherForm"), {
+const StaffForm = dynamic(() => import("./forms/StaffForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-const StudentForm = dynamic(() => import("./forms/StudentForm"), {
+const ResidentForm = dynamic(() => import("./forms/ResidentForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-const SubjectForm = dynamic(() => import("./forms/SubjectForm"), {
+const FamilyForm = dynamic(() => import("./forms/FamilyForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-const ClassForm = dynamic(() => import("./forms/ClassForm"), {
+const RoomForm = dynamic(() => import("./forms/RoomForm"), {
   loading: () => <h1>Loading...</h1>,
 });
-const ExamForm = dynamic(() => import("./forms/ExamForm"), {
+const CarePlanForm = dynamic(() => import("./forms/CarePlanForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const MedicalRecordForm = dynamic(() => import("./forms/MedicalRecordForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const CareRoutineForm = dynamic(() => import("./forms/CareRoutineForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const EventForm = dynamic(() => import("./forms/EventForm"), {
+  loading: () => <h1>Loading...</h1>,
+});
+const AnnouncementForm = dynamic(() => import("./forms/AnnouncementForm"), {
   loading: () => <h1>Loading...</h1>,
 });
 
@@ -56,40 +68,72 @@ const forms: {
     relatedData?: any
   ) => JSX.Element;
 } = {
-  subject: (setOpen, type, data, relatedData) => (
-    <SubjectForm
+  staff: (setOpen, type, data, relatedData) => (
+    <StaffForm
       type={type}
       data={data}
       setOpen={setOpen}
       relatedData={relatedData}
     />
   ),
-  class: (setOpen, type, data, relatedData) => (
-    <ClassForm
+  resident: (setOpen, type, data, relatedData) => (
+    <ResidentForm
       type={type}
       data={data}
       setOpen={setOpen}
       relatedData={relatedData}
     />
   ),
-  teacher: (setOpen, type, data, relatedData) => (
-    <TeacherForm
+  family: (setOpen, type, data, relatedData) => (
+    <FamilyForm
       type={type}
       data={data}
       setOpen={setOpen}
       relatedData={relatedData}
     />
   ),
-  student: (setOpen, type, data, relatedData) => (
-    <StudentForm
+  room: (setOpen, type, data, relatedData) => (
+    <RoomForm
       type={type}
       data={data}
       setOpen={setOpen}
       relatedData={relatedData}
     />
   ),
-  exam: (setOpen, type, data, relatedData) => (
-    <ExamForm
+  carePlan: (setOpen, type, data, relatedData) => (
+    <CarePlanForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  medicalRecord: (setOpen, type, data, relatedData) => (
+    <MedicalRecordForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  careRoutine: (setOpen, type, data, relatedData) => (
+    <CareRoutineForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  event: (setOpen, type, data, relatedData) => (
+    <EventForm
+      type={type}
+      data={data}
+      setOpen={setOpen}
+      relatedData={relatedData}
+    />
+  ),
+  announcement: (setOpen, type, data, relatedData) => (
+    <AnnouncementForm
       type={type}
       data={data}
       setOpen={setOpen}
@@ -116,20 +160,13 @@ const FormModal = ({
   const [open, setOpen] = useState(false);
 
   const Form = () => {
-    const [state, formAction] = useFormState(deleteActionMap[table], {
-      success: false,
-      error: false,
-    });
-
     const router = useRouter();
 
     useEffect(() => {
-      if (state.success) {
-        toast(`${table} has been deleted!`);
-        setOpen(false);
+      if (!open) {
         router.refresh();
       }
-    }, [state, router]);
+    }, [open, router]);
 
     const formComponent = forms[table];
 
@@ -140,8 +177,12 @@ const FormModal = ({
     }
 
     return type === "delete" && id ? (
-      <form action={formAction} className="p-4 flex flex-col gap-4">
-        <input type="text | number" name="id" value={id} hidden />
+      <form
+        action={deleteActionMap[table]}
+        className="p-4 flex flex-col gap-4"
+        method="POST"
+      >
+        <input type="hidden" name="id" value={id} />
         <span className="text-center font-medium">
           All data will be lost. Are you sure you want to delete this {table}?
         </span>

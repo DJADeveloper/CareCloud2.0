@@ -1,21 +1,20 @@
 import prisma from "@/lib/prisma";
 import FormModal from "./FormModal";
 import { auth } from "@clerk/nextjs/server";
+import { StaffRole } from "@prisma/client";
 
 export type FormContainerProps = {
   table:
-    | "teacher"
-    | "student"
-    | "parent"
-    | "subject"
-    | "class"
-    | "lesson"
-    | "exam"
-    | "assignment"
-    | "result"
-    | "attendance"
+    | "staff"
+    | "resident"
+    | "family"
+    | "room"
+    | "carePlan"
+    | "medicalRecord"
+    | "careRoutine"
     | "event"
-    | "announcement";
+    | "announcement"
+    | "assessment";
   type: "create" | "update" | "delete";
   data?: any;
   id?: number | string;
@@ -30,44 +29,74 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
 
   if (type !== "delete") {
     switch (table) {
-      case "subject":
-        const subjectTeachers = await prisma.teacher.findMany({
-          select: { id: true, name: true, surname: true },
-        });
-        relatedData = { teachers: subjectTeachers };
+      case "staff":
+        const staffRoles = Object.keys(StaffRole); // This gives you the keys of the enum
+        relatedData = { roles: staffRoles };
         break;
-      case "class":
-        const classGrades = await prisma.grade.findMany({
-          select: { id: true, level: true },
-        });
-        const classTeachers = await prisma.teacher.findMany({
-          select: { id: true, name: true, surname: true },
-        });
-        relatedData = { teachers: classTeachers, grades: classGrades };
-        break;
-      case "teacher":
-        const teacherSubjects = await prisma.subject.findMany({
+
+      case "resident":
+        const residentRooms = await prisma.room.findMany({
           select: { id: true, name: true },
         });
-        relatedData = { subjects: teacherSubjects };
-        break;
-      case "student":
-        const studentGrades = await prisma.grade.findMany({
-          select: { id: true, level: true },
+        const residentFamilies = await prisma.familyMember.findMany({
+          select: { id: true, name: true, surname: true },
         });
-        const studentClasses = await prisma.class.findMany({
-          include: { _count: { select: { students: true } } },
-        });
-        relatedData = { classes: studentClasses, grades: studentGrades };
+        relatedData = { rooms: residentRooms, families: residentFamilies };
         break;
-      case "exam":
-        const examLessons = await prisma.lesson.findMany({
-          where: {
-            ...(role === "teacher" ? { teacherId: currentUserId! } : {}),
-          },
+
+      case "family":
+        const associatedResidents = await prisma.resident.findMany({
+          select: { id: true, fullName: true },
+        });
+        relatedData = { residents: associatedResidents };
+        break;
+
+      case "room":
+        const routinesForRooms = await prisma.careRoutine.findMany({
           select: { id: true, name: true },
         });
-        relatedData = { lessons: examLessons };
+        relatedData = { routines: routinesForRooms };
+        break;
+
+      case "carePlan":
+      case "medicalRecord":
+        const associatedResidentsForPlans = await prisma.resident.findMany({
+          select: { id: true, fullName: true },
+        });
+        relatedData = { residents: associatedResidentsForPlans };
+        break;
+
+      case "careRoutine":
+        const roomOptions = await prisma.room.findMany({
+          select: { id: true, name: true },
+        });
+        relatedData = { rooms: roomOptions };
+        break;
+
+      case "event":
+      case "announcement":
+        const availableRooms = await prisma.room.findMany({
+          select: { id: true, name: true },
+        });
+        relatedData = { rooms: availableRooms };
+        break;
+
+      case "assessment":
+        const residentsForAssessment = await prisma.resident.findMany({
+          select: { id: true, fullName: true },
+        });
+        const careProviders = await prisma.staff.findMany({
+          where: { role: "CARE_PROVIDER" },
+          select: { id: true, name: true, surname: true },
+        });
+        const relatedPlans = await prisma.carePlan.findMany({
+          select: { id: true, title: true },
+        });
+        relatedData = {
+          residents: residentsForAssessment,
+          careProviders,
+          carePlans: relatedPlans,
+        };
         break;
 
       default:

@@ -7,169 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Admin {
-  id       String @id
-  username String @unique
-}
-
-model Student {
-  id          String       @id
-  username    String       @unique
-  name        String
-  surname     String
-  email       String?      @unique
-  phone       String?      @unique
-  address     String
-  img         String?
-  bloodType   String
-  sex         UserSex
-  createdAt   DateTime     @default(now())
-  parentId    String
-  classId     Int
-  gradeId     Int
-  birthday    DateTime
-  attendances Attendance[]
-  results     Result[]
-  class       Class        @relation(fields: [classId], references: [id])
-  grade       Grade        @relation(fields: [gradeId], references: [id])
-  parent      Parent       @relation(fields: [parentId], references: [id])
-}
-
-model Teacher {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String?   @unique
-  address   String
-  img       String?
-  bloodType String
-  sex       UserSex
-  createdAt DateTime  @default(now())
-  birthday  DateTime
-  classes   Class[]
-  lessons   Lesson[]
-  subjects  Subject[] @relation("SubjectToTeacher")
-}
-
-model Parent {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String    @unique
-  address   String
-  createdAt DateTime  @default(now())
-  students  Student[]
-}
-
-model Grade {
-  id       Int       @id @default(autoincrement())
-  level    Int       @unique
-  classess Class[]
-  students Student[]
-}
-
-model Class {
-  id            Int            @id @default(autoincrement())
-  name          String         @unique
-  capacity      Int
-  supervisorId  String?
-  gradeId       Int
-  announcements Announcement[]
-  grade         Grade          @relation(fields: [gradeId], references: [id])
-  supervisor    Teacher?       @relation(fields: [supervisorId], references: [id])
-  events        Event[]
-  lessons       Lesson[]
-  students      Student[]
-}
-
-model Subject {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  lessons  Lesson[]
-  teachers Teacher[] @relation("SubjectToTeacher")
-}
-
-model Lesson {
-  id          Int          @id @default(autoincrement())
-  name        String
-  day         Day
-  startTime   DateTime
-  endTime     DateTime
-  subjectId   Int
-  classId     Int
-  teacherId   String
-  assignments Assignment[]
-  attendances Attendance[]
-  exams       Exam[]
-  class       Class        @relation(fields: [classId], references: [id])
-  subject     Subject      @relation(fields: [subjectId], references: [id])
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-}
-
-model Exam {
-  id        Int      @id @default(autoincrement())
-  title     String
-  startTime DateTime
-  endTime   DateTime
-  lessonId  Int
-  lesson    Lesson   @relation(fields: [lessonId], references: [id])
-  results   Result[]
-}
-
-model Assignment {
-  id        Int      @id @default(autoincrement())
-  title     String
-  startDate DateTime
-  dueDate   DateTime
-  lessonId  Int
-  lesson    Lesson   @relation(fields: [lessonId], references: [id])
-  results   Result[]
-}
-
-model Result {
-  id           Int         @id @default(autoincrement())
-  score        Int
-  examId       Int?
-  assignmentId Int?
-  studentId    String
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
-  exam         Exam?       @relation(fields: [examId], references: [id])
-  student      Student     @relation(fields: [studentId], references: [id])
-}
-
-model Attendance {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  present   Boolean
-  studentId String
-  lessonId  Int
-  lesson    Lesson   @relation(fields: [lessonId], references: [id])
-  student   Student  @relation(fields: [studentId], references: [id])
-}
-
-model Event {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  startTime   DateTime
-  endTime     DateTime
-  classId     Int?
-  class       Class?   @relation(fields: [classId], references: [id])
-}
-
-model Announcement {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  date        DateTime
-  classId     Int?
-  class       Class?   @relation(fields: [classId], references: [id])
-}
-
 enum UserSex {
   MALE
   FEMALE
@@ -181,4 +18,147 @@ enum Day {
   WEDNESDAY
   THURSDAY
   FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum StaffRole {
+  ADMIN
+  NURSE
+  CAREGIVER
+}
+
+enum CareLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Admin {
+  id       String      @id
+  username String      @unique
+  name     String
+  surname  String
+  email    String?     @unique
+  phone    String?     @unique
+  tasks    AdminTask[]
+}
+
+model AdminTask {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  assigneeId  String
+  assignee    Admin    @relation(fields: [assigneeId], references: [id])
+}
+
+model Staff {
+  id       String      @id
+  username String      @unique
+  name     String
+  surname  String
+  email    String?     @unique
+  phone    String?     @unique
+  role     StaffRole
+  tasks    StaffTask[]
+}
+
+model StaffTask {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  assigneeId  String
+  assignee    Staff     @relation(fields: [assigneeId], references: [id])
+  residentId  String?
+  resident    Resident? @relation(fields: [residentId], references: [id])
+}
+
+model Resident {
+  id                    String       @id
+  fullName              String
+  email                 String?      @unique
+  phone                 String
+  address               String
+  dateOfBirth           DateTime
+  careLevel             CareLevel
+  emergencyContactName  String
+  emergencyContactPhone String
+  emergencyContactEmail String?
+  familyId              String
+  roomId                Int?
+  family                FamilyMember @relation(fields: [familyId], references: [id])
+  room                  Room?        @relation(fields: [roomId], references: [id])
+  carePlans             CarePlan[]
+  medicalRecords        MedicalRecord[]
+  tasks                 StaffTask[]
+}
+
+model FamilyMember {
+  id        String     @id
+  username  String     @unique
+  name      String
+  surname   String
+  email     String?    @unique
+  phone     String
+  address   String
+  residents Resident[]
+}
+
+model Room {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  capacity       Int
+  residents      Resident[]
+  routines       CareRoutine[]
+  events         Event[]
+  announcements  Announcement[]
+}
+
+model CarePlan {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  residentId  String
+  resident    Resident @relation(fields: [residentId], references: [id])
+}
+
+model MedicalRecord {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
+  residentId  String
+  resident    Resident @relation(fields: [residentId], references: [id])
+}
+
+model CareRoutine {
+  id        Int      @id @default(autoincrement())
+  name      String
+  day       Day
+  startTime DateTime
+  endTime   DateTime
+  roomId    Int?
+  room      Room?    @relation(fields: [roomId], references: [id])
+  category  String   @default("General")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  startTime   DateTime
+  endTime     DateTime
+  roomId      Int?
+  room        Room?    @relation(fields: [roomId], references: [id])
+}
+
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  date        DateTime
+  roomId      Int?
+  room        Room?    @relation(fields: [roomId], references: [id])
 }

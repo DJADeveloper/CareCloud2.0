@@ -3,37 +3,47 @@ import CountChart from "./CountChart";
 import prisma from "@/lib/prisma";
 
 const CountChartContainer = async () => {
-  const data = await prisma.student.groupBy({
-    by: ["sex"],
+  const data = await prisma.resident.groupBy({
+    by: ["careLevel"],
     _count: true,
   });
 
-  const boys = data.find((d) => d.sex === "MALE")?._count || 0;
-  const girls = data.find((d) => d.sex === "FEMALE")?._count || 0;
+  const low = data.find((d) => d.careLevel === "LOW")?._count || 0;
+  const medium = data.find((d) => d.careLevel === "MEDIUM")?._count || 0;
+  const high = data.find((d) => d.careLevel === "HIGH")?._count || 0;
+
+  const total = low + medium + high;
 
   return (
     <div className="bg-white rounded-xl w-full h-full p-4">
       {/* TITLE */}
       <div className="flex justify-between items-center">
-        <h1 className="text-lg font-semibold">Students</h1>
+        <h1 className="text-lg font-semibold">Residents by Care Level</h1>
         <Image src="/moreDark.png" alt="" width={20} height={20} />
       </div>
       {/* CHART */}
-      <CountChart boys={boys} girls={girls} />
+      <CountChart low={low} medium={medium} high={high} />
       {/* BOTTOM */}
-      <div className="flex justify-center gap-16">
-        <div className="flex flex-col gap-1">
+      <div className="flex justify-center gap-16 mt-4">
+        <div className="flex flex-col gap-1 items-center">
           <div className="w-5 h-5 bg-lamaSky rounded-full" />
-          <h1 className="font-bold">{boys}</h1>
+          <h1 className="font-bold">{low}</h1>
           <h2 className="text-xs text-gray-300">
-            Boys ({Math.round((boys / (boys + girls)) * 100)}%)
+            Low ({total > 0 ? Math.round((low / total) * 100) : 0}%)
           </h2>
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 items-center">
           <div className="w-5 h-5 bg-lamaYellow rounded-full" />
-          <h1 className="font-bold">{girls}</h1>
+          <h1 className="font-bold">{medium}</h1>
           <h2 className="text-xs text-gray-300">
-            Girls ({Math.round((girls / (boys + girls)) * 100)}%)
+            Medium ({total > 0 ? Math.round((medium / total) * 100) : 0}%)
+          </h2>
+        </div>
+        <div className="flex flex-col gap-1 items-center">
+          <div className="w-5 h-5 bg-red-400 rounded-full" />
+          <h1 className="font-bold">{high}</h1>
+          <h2 className="text-xs text-gray-300">
+            High ({total > 0 ? Math.round((high / total) * 100) : 0}%)
           </h2>
         </div>
       </div>

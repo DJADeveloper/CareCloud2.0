@@ -7,8 +7,8 @@ const Announcements = async () => {
 
   const roleConditions = {
     teacher: { lessons: { some: { teacherId: userId! } } },
-    student: { students: { some: { id: userId! } } },
-    parent: { students: { some: { parentId: userId! } } },
+    resident: { residents: { some: { id: userId! } } },
+    family: { residents: { some: { familyId: userId! } } },
   };
 
   const data = await prisma.announcement.findMany({

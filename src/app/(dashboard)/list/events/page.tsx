@@ -15,7 +15,6 @@ const EventListPage = async ({
 }: {
   searchParams: { [key: string]: string | undefined };
 }) => {
-
   const { userId, sessionClaims } = auth();
   const role = (sessionClaims?.metadata as { role?: string })?.role;
   const currentUserId = userId;
@@ -117,8 +116,8 @@ const EventListPage = async ({
 
   const roleConditions = {
     teacher: { lessons: { some: { teacherId: currentUserId! } } },
-    student: { students: { some: { id: currentUserId! } } },
-    parent: { students: { some: { parentId: currentUserId! } } },
+    resident: { residents: { some: { id: currentUserId! } } },
+    family: { residents: { some: { familyId: currentUserId! } } },
   };
 
   query.OR = [
